@@ -52,19 +52,19 @@
                     },(error)=>{
                         console.log(error);
                         switch (error.code) {
+                            case "auth/email-already-in-use":
+                                error.message = "Email já está em uso";
+                                break;
                             case "auth/invalid-email":
-                                error.message = "Email não é válido";
+                                error.message = "Email inválido";
                                 break;
-                            case "auth/user-disable":
-                                error.message = "O usuário está desabilitado";
+                            case "auth/operation-not-allowed":
+                                error.message = "Conta desativada";
                                 break;
-                            case "auth/user-not-found":
-                                error.message = "Usuário não encontrado";
+                            case "auth/weak-password":
+                                error.message = "Senha não é forte o suficiente";
                                 break;
-                            case "auth/wrong-password":
-                                error.message = "Senha inválida";
-                                break;
-                            default: error.message = "Erro na autenticação, verifique sua conexão";
+                            default: "Erro no cadastro do usuário";
                         }
                         Swal.fire(error.message);
                     })

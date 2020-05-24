@@ -13,6 +13,7 @@
     "core-js": "^3.6.4",
     "firebase": "^7.14.5",
     "jquery": "^3.5.1",
+    "moment": "^2.26.0",
     "popper.js": "^1.16.1",
     "spectre.css": "^0.5.8",
     "sweetalert2": "^9.13.1",
@@ -32,7 +33,11 @@
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "browser": true,
+      "commonjs": true,
+      "es6": true,
+      "jquery": true
     },
     "extends": [
       "plugin:vue/essential",
