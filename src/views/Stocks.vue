@@ -25,8 +25,8 @@
                     <div class="col">
                         <select v-model="filterList" class="form-control form-control">
                             <option value="all">Todos</option>
-                            <option value="buy">Compras</option>
-                            <option value="sell">Vendas</option>
+                            <option value="compra">Compras</option>
+                            <option value="venda">Vendas</option>
                         </select>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                             <td>R${{stock.tax}}</td>
                             <td>{{stock.amount}}</td>
                             <td>R${{stock.total}}</td>
-                            <td><button type="button" class="btn btn-danger btn-sm">X</button></td>
+                            <td><button type="button" @click="remove(stock)" class="btn btn-danger btn-sm">X</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -195,16 +195,10 @@
                         stock.date = moment(stock.date).format("DD/MM/YYYY");
                         console.log(stock);
                         user.stocks.push(stock);
-                        if(stock.type=="compra"){
-                            total-=stock.total;
-                        }else{
-                            total+=stock.total;
-                        }
+                        
                     }
                 }
                 console.log(user);
-                console.log(total);
-                this.total = total;
             })
             return{
                 user:user,
@@ -213,7 +207,8 @@
                 stocks:stocks,
                 total:total,
                 search:'',
-                filterList:'all'
+                filterList:'all',
+                viewStocks:[]
             }
         },
         methods:{
@@ -254,28 +249,65 @@
             logout(){
                 localStorage.removeItem("user");
                 this.$router.push('/');
+            },
+            calculator(listStock){
+                console.log(this.viewStocks);
+                let total = 0;
+                for(var k in listStock){
+                    let stock = listStock[k];
+                    if(stock.type=="compra"){
+                        total-=stock.total;
+                    }else{
+                        total+=stock.total;
+                    }
+                }
+                console.log(total);
+                this.total = total;
+            },
+            remove(item){
+                firebase.database().ref('users/'+this.user.uid+"/stocks/"+item.id).remove();
             }
         },
         computed: {
             list() {
                 console.log("list");
                 const filter = this.search.toUpperCase();
+                const filter2 = this.filterList;
+                let filtered = [];
                 if (filter == '') {
-                    return this.user.stocks;
+                    if(filter2=='all'){
+                        filtered = this.user.stocks;
+                    }else{
+                        filtered = this.user.stocks.filter((item)=>{
+                            if(item.type == filter2){
+                                return true;
+                            }
+                        })
+                    }
                 }else{
                     let filtered = this.user.stocks.filter((item)=>{
-                        console.log(item);
-                        console.log(filter);
-                        console.log(item.stock.name);
                         if(item.stock.name.indexOf(filter)>=0){
                             console.log("return true");
                             console.log(item);
                             return true;
                         }
                     })
-                    console.log(filtered);
-                    return filtered;
+                    if(this.filterList!='all'){
+                        console.log("oii");
+                        console.log(filtered);
+                        filtered = filtered.filter((item)=>{
+                            console.log(item);
+                            console.log(this.filterList);
+                            if(item.type==this.filterList){
+                                return true;
+                            }
+                        })
+                    }
                 }
+                // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+                this.viewStocks = filtered;
+                this.calculator(filtered);
+                return filtered
             }
         },
     }
@@ -300,11 +332,11 @@
         padding: 0 3px;;
     }
     .buy{
-        color:green;
+        color:red;
         text-transform: capitalize;
     }
     .sell{
-        color:red;
+        color:green;
         text-transform: capitalize;
     }
 </style>
