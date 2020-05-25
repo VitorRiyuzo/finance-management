@@ -7,7 +7,7 @@
                     <hr class="my-4">
                     <form @submit.prevent="signup">
                         <div class="form-group">
-                            <label>E-mai</label>
+                            <label>E-mail</label>
                             <input type="email" v-model="email" class="form-control">
                         </div>
                         <div class="form-group">

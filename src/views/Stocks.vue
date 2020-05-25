@@ -61,7 +61,7 @@
         </div>
         <div class="total">
             <div class="row justify-content-end">
-                <div class="card text-white" v-bind:class="{'bg-success':this.total>0,'bg-danger':this.total<0}">
+                <div class="card text-white" style="opacity:0.7" v-bind:class="{'bg-success':this.total>=0,'bg-danger':this.total<0}">
                     <div class="card-body">
                         <h4>Total: R$: {{this.total}}</h4>
                     </div>
@@ -118,7 +118,7 @@
                                 </fieldset>
                             </div> -->
                             <div class="form-group">
-                                <label>Data</label>
+                                <label>Data de execução</label>
                                 <input type="date" v-model="stock.date" required class="form-control">
                             </div>
                         </div>
@@ -135,7 +135,7 @@
                 <div class="modal-content">
                     <form @submit.prevent="newStock">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="createModalLabel">Adicionar Negociação</h5>
+                            <h5 class="modal-title" id="createModalLabel">Adicionar Código de ação</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                             </button>
@@ -143,7 +143,7 @@
                         <div class="modal-body">
                             <div class="form-group">
                                 <label>Código da Ação</label>
-                                <input type="text" v-model="nameStock" class="form-control" required>
+                                <input type="text" style="text-transform: uppercase" v-model="nameStock" class="form-control" required>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -182,6 +182,7 @@
                         stocks.push(stock);
                     }
                 }
+                this.stocks = stocks;
                 console.log(stocks);
             })
             firebase.database().ref('users/'+user.uid+'/stocks').on('value',(snapshot)=>{
@@ -192,6 +193,7 @@
                     for(var i in data){
                         let stock = data[i];
                         stock.id = i;
+                        stock.total = stock.total.toFixed(2);
                         stock.date = moment(stock.date).format("DD/MM/YYYY");
                         console.log(stock);
                         user.stocks.push(stock);
@@ -221,6 +223,7 @@
                     stock.total = (stock.price*stock.amount)-parseInt(stock.tax);
                 }
                 console.log(stock);
+                stock.created_at = moment().format("YYYY-MM-DD");
                 firebase.database().ref('users/' + this.user.uid+"/stocks").push(this.stock).then(()=>{
                     this.stock = {};
                     $("#addModal").modal('hide');
@@ -251,18 +254,18 @@
                 this.$router.push('/');
             },
             calculator(listStock){
-                console.log(this.viewStocks);
                 let total = 0;
+                console.log(listStock);
                 for(var k in listStock){
                     let stock = listStock[k];
                     if(stock.type=="compra"){
-                        total-=stock.total;
+                        total-=parseFloat(stock.total);
                     }else{
-                        total+=stock.total;
+                        total+=parseFloat(stock.total);
                     }
                 }
                 console.log(total);
-                this.total = total;
+                this.total = total.toFixed(2);
             },
             remove(item){
                 firebase.database().ref('users/'+this.user.uid+"/stocks/"+item.id).remove();
@@ -285,7 +288,7 @@
                         })
                     }
                 }else{
-                    let filtered = this.user.stocks.filter((item)=>{
+                    filtered = this.user.stocks.filter((item)=>{
                         if(item.stock.name.indexOf(filter)>=0){
                             console.log("return true");
                             console.log(item);
@@ -303,9 +306,11 @@
                             }
                         })
                     }
+                    console.log(filtered);
                 }
+                    console.log(filtered);
                 // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-                this.viewStocks = filtered;
+                //this.viewStocks = filtered;
                 this.calculator(filtered);
                 return filtered
             }
