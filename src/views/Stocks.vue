@@ -30,6 +30,20 @@
                         </select>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group date">
+                            <label>Data inicial</label>
+                            <input type="date" v-model="startDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group date">
+                            <label>Data Final</label>
+                            <input type="date" v-model="endDate" class="form-control">
+                        </div>
+                    </div>
+                </div>
                 <hr>
                 <table class="table table-striped">
                     <thead class="thead-dark">
@@ -111,12 +125,6 @@
                                 <label>Taxas</label>
                                 <input type="number" step="any" required v-model="stock.tax" class="form-control">
                             </div>
-                            <!-- <div class="form-group">
-                                <fieldset disabled>
-                                    <label>Total</label>
-                                    <input type="number" v-model="stock.total"  class="form-control">
-                                </fieldset>
-                            </div> -->
                             <div class="form-group">
                                 <label>Data de execução</label>
                                 <input type="date" v-model="stock.date" required class="form-control">
@@ -205,22 +213,27 @@
             return{
                 user:user,
                 stock:{},
-                nameStock:"",
+                nameStock:'',
                 stocks:stocks,
                 total:total,
                 search:'',
+                startDate:'',
+                endDate:'',
                 filterList:'all',
                 viewStocks:[]
             }
+        },
+        ready:function() {
+            $(".input-group").datepicker();
         },
         methods:{
             add(){
                 console.log(this.stock);
                 let stock = this.stock;
                 if(stock.type == 'compra'){
-                    stock.total = (stock.price*stock.amount)+parseInt(stock.tax);
+                    stock.total = (stock.price*stock.amount)+parseFloat(stock.tax);
                 }else{
-                    stock.total = (stock.price*stock.amount)-parseInt(stock.tax);
+                    stock.total = (stock.price*stock.amount)-parseFloat(stock.tax);
                 }
                 console.log(stock);
                 stock.created_at = moment().format("YYYY-MM-DD");
@@ -274,43 +287,39 @@
         computed: {
             list() {
                 console.log("list");
-                const filter = this.search.toUpperCase();
+                const filter1 = this.search.toUpperCase();
                 const filter2 = this.filterList;
-                let filtered = [];
-                if (filter == '') {
-                    if(filter2=='all'){
-                        filtered = this.user.stocks;
-                    }else{
-                        filtered = this.user.stocks.filter((item)=>{
-                            if(item.type == filter2){
-                                return true;
-                            }
-                        })
-                    }
-                }else{
-                    filtered = this.user.stocks.filter((item)=>{
-                        if(item.stock.name.indexOf(filter)>=0){
-                            console.log("return true");
-                            console.log(item);
+                const filter3 = {
+                    "start":this.startDate,
+                    "end":this.endDate
+                }
+                let filtered = this.user.stocks;
+                if(filter1 != ''){
+                    filtered = filtered.filter((item)=>{
+                        if(item.stock.name.indexOf(filter1)>=0){
                             return true;
                         }
                     })
-                    if(this.filterList!='all'){
-                        console.log("oii");
-                        console.log(filtered);
-                        filtered = filtered.filter((item)=>{
-                            console.log(item);
-                            console.log(this.filterList);
-                            if(item.type==this.filterList){
-                                return true;
-                            }
-                        })
-                    }
+                }
+                if(filter2!='all'){
+                    filtered = filtered.filter((item)=>{
+                        if(item.type == filter2){
+                            return true;
+                        }
+                    })
+                }
+                if(filter3.start && filter3.end){
+                    filtered = filtered.filter((item)=>{
+                        let startDate = moment(filter3.start);
+                        let endDate = moment(filter3.end);
+                        let date = moment(item.date,"DD/MM/YYYY");
+                        let range = date.isBetween(startDate, endDate);
+                        if(range){
+                            return true;
+                        }
+                    })
                     console.log(filtered);
                 }
-                    console.log(filtered);
-                // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-                //this.viewStocks = filtered;
                 this.calculator(filtered);
                 return filtered
             }
