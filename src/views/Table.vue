@@ -123,7 +123,7 @@
                         let startDate = moment(filter3.startDate);
                         let endDate = moment(filter3.endDate);
                         let date = moment(item.date,"DD/MM/YYYY");
-                        let range = date.isBetween(startDate, endDate);
+                        let range = date.isBetween(startDate, endDate, undefined,[]);
                         if(range){
                             return true;
                         }
